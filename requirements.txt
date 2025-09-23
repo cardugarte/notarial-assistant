@@ -1,0 +1,7 @@
+google-adk
+google-generativeai
+python-dotenv
+google-cloud-aiplatform
+google-cloud-storage
+google-genai
+git-python
