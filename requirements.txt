@@ -8,3 +8,4 @@ requests
 google-cloud-secret-manager
 uvicorn
 python-multipart
+itsdangerous

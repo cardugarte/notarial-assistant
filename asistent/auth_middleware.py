@@ -74,7 +74,10 @@ oauth.register(
 )
 
 async def login(request):
+    # Force HTTPS for Cloud Run (behind proxy)
     redirect_uri = request.url_for('authorize')
+    # Replace http:// with https:// when behind a proxy
+    redirect_uri = str(redirect_uri).replace('http://', 'https://')
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 async def authorize(request):
