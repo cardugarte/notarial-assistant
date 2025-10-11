@@ -6,3 +6,4 @@ google-genai
 flask
 authlib
 requests
+google-cloud-secret-manager

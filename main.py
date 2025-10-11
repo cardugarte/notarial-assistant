@@ -7,9 +7,10 @@ from flask import Flask, redirect, url_for, session, render_template, request
 from authlib.integrations.flask_client import OAuth
 from functools import wraps
 from werkzeug.middleware.proxy_fix import ProxyFix
+from asistent.secrets import get_secret
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+app.secret_key = get_secret("flask-secret-key")
 
 # Trust proxy headers (Cloud Run uses X-Forwarded-* headers)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -18,8 +19,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 oauth = OAuth(app)
 google = oauth.register(
     name='google',
-    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
+    client_id=get_secret("google-client-id"),
+    client_secret=get_secret("google-client-secret"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
