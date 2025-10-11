@@ -6,7 +6,7 @@
 set -e
 
 PROJECT_ID="escribania-mastropasqua"
-REQUIRED_SECRETS=("flask-secret-key" "google-client-id" "google-client-secret")
+REQUIRED_SECRETS=("flask-secret-key" "google-client-id" "google-client-secret" "allowed-users-list")
 
 echo "🔍 Verifying Secret Manager configuration for project: $PROJECT_ID"
 echo ""
@@ -51,6 +51,7 @@ echo ""
 
 # Check service account permissions
 echo "✓ Checking service account permissions..."
+# Default compute service account used by Cloud Run
 SERVICE_ACCOUNT="997298514042-compute@developer.gserviceaccount.com"
 
 if gcloud projects get-iam-policy $PROJECT_ID --flatten="bindings[].members" --format="table(bindings.role)" --filter="bindings.members:serviceAccount:$SERVICE_ACCOUNT AND bindings.role:roles/secretmanager.secretAccessor" | grep -q secretmanager.secretAccessor; then
