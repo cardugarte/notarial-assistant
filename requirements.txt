@@ -3,7 +3,8 @@ google-generativeai
 python-dotenv
 google-cloud-storage
 google-genai
-flask
 authlib
 requests
 google-cloud-secret-manager
+uvicorn
+python-multipart
