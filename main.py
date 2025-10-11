@@ -25,10 +25,7 @@ google = oauth.register(
     client_kwargs={'scope': 'openid email profile'}
 )
 
-from asistent.gcs import get_allowed_users_from_gcs
 
-ALLOWED_USERS_BUCKET = os.environ.get("ALLOWED_USERS_BUCKET", "adk-rag-agent-config")
-ALLOWED_USERS_FILE = os.environ.get("ALLOWED_USERS_FILE", "allowed_users.txt")
 
 
 def login_required(f):
@@ -62,7 +59,8 @@ def authorize():
         email = user_info.get('email')
 
         # Check if user is in whitelist
-        allowed_users = get_allowed_users_from_gcs(ALLOWED_USERS_BUCKET, ALLOWED_USERS_FILE)
+        allowed_users_str = get_secret("allowed-users-list")
+        allowed_users = [email.strip() for email in allowed_users_str.split(",")]
         if email not in allowed_users:
             return render_template('unauthorized.html', email=email), 403
 
