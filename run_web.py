@@ -25,7 +25,10 @@ fastapi_app = get_fast_api_app(
 # 3. FastAPI app (innermost) - actual ADK application
 app = SessionMiddleware(
     AuthMiddleware(fastapi_app),
-    secret_key=get_secret("flask-secret-key")
+    secret_key=get_secret("flask-secret-key"),
+    max_age=None,  # Session cookie - expires when browser closes
+    same_site="lax",  # CSRF protection
+    https_only=True  # Only send cookie over HTTPS (important for production)
 )
 
 if __name__ == "__main__":
