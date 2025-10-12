@@ -22,10 +22,10 @@ from asistent.agent import root_agent
 # CONFIGURATION - Update with your values
 # ==============================================================================
 
-PROJECT_ID = "your-gcp-project-id"
+PROJECT_ID = "escribania-mastropasqua"
 LOCATION = "us-central1"  # Must be a supported region for Agent Engine
                           # See: https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview#supported-regions
-STAGING_BUCKET = "gs://your-staging-bucket-name"
+STAGING_BUCKET = "gs://escribania-mastropasqua_cloudbuild"
 
 # ==============================================================================
 # DEPLOYMENT
@@ -55,7 +55,8 @@ remote_app = agent_engines.create(
         "google-api-python-client>=2.157.0",
         "google-cloud-secret-manager>=2.22.0",
         "google-cloud-storage>=2.18.0",
-    ]
+    ],
+    extra_packages=["./asistent"]  # Include the asistent module
 )
 
 print("\n" + "=" * 70)

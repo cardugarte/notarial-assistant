@@ -18,7 +18,7 @@ from vertexai import agent_engines
 # ==============================================================================
 
 # Get this from deploy_agent_engine.py output or Cloud Console
-RESOURCE_NAME = "projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/YOUR_RESOURCE_ID"
+RESOURCE_NAME = "projects/997298514042/locations/us-central1/reasoningEngines/2325497879071817728"
 
 # Format: "projects/{PROJECT_NUMBER}/locations/{LOCATION}/reasoningEngines/{RESOURCE_ID}"
 # Note: PROJECT_NUMBER is different from PROJECT_ID
@@ -42,7 +42,6 @@ async def test_deployed_agent():
     # Create session on Agent Engine
     session = await remote_app.async_create_session(user_id="test_user")
     print(f"   Session ID: {session['id']}")
-    print(f"   App Name: {session['app_name']}")
 
     # Test queries
     test_queries = [
