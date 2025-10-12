@@ -1,30 +1,20 @@
-# Core ADK and Google Cloud AI
-google-cloud-aiplatform[adk,agent_engines]==1.120.0
-google-adk==1.16.0
+# Core ADK - Official compatible versions from pyproject.toml
+google-adk>=1.16.0
+google-cloud-aiplatform[adk,agent_engines]>=1.112.0,<2.0.0
+google-genai>=1.41.0,<2.0.0
 
-# Google AI libraries
-google-generativeai==0.8.3
-google-genai==1.43.0
+# Google Cloud Services
+google-cloud-storage>=2.18.0,<3.0.0
+google-cloud-secret-manager>=2.22.0,<3.0.0
+google-api-python-client>=2.157.0,<3.0.0
 
-# Google Cloud services
-google-cloud-storage==2.19.0
-google-cloud-secret-manager==2.24.0
-google-api-python-client==2.184.0
-google-auth==2.41.1
-google-auth-httplib2==0.2.0
-
-# Web framework and server
-uvicorn==0.37.0
-fastapi==0.119.0
-starlette==0.48.0
-python-multipart==0.0.20
-itsdangerous==2.2.0
-
-# Authentication
-authlib==1.6.5
+# Auth (ADK dependencies - installed automatically with ADK)
+authlib>=1.5.1,<2.0.0
+google-auth>=2.0.0
+google-auth-httplib2>=0.2.0
 
 # Utilities
-python-dotenv==1.1.1
-requests==2.32.5
-pydantic==2.12.0
-typing-extensions==4.15.0
+python-dotenv>=1.0.0,<2.0.0
+pydantic>=2.0,<3.0.0
+requests>=2.32.4,<3.0.0
+PyYAML>=6.0.2,<7.0.0
