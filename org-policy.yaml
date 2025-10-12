@@ -1,3 +1,5 @@
 constraint: constraints/iam.allowedPolicyMemberDomains
 listPolicy:
-  allValues: ALLOW
+  allowedValues:
+    - "mastropasqua.ar"
+    - "xplorers.ar"
