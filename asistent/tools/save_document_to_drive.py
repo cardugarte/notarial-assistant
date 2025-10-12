@@ -67,45 +67,21 @@ def save_document_to_drive(
         # }
     """
     try:
-        # Step 1: Get user email from tool context state
-        # Try multiple sources for the user email
-        user_email = None
+        # Step 1: Get user email from tool context state (ADK official pattern)
+        # Try app-scoped state first (recommended ADK pattern with 'app:' prefix)
+        user_email = tool_context.state.get("app:user_email")
 
-        # Source 1: Check if already stored in state
-        user_email = tool_context.state.get("user_email")
-
-        # Source 2: Check session_state (where ASGI scope.state should be)
-        if not user_email and hasattr(tool_context, 'session_state'):
-            user_email = tool_context.session_state.get("user_email")
-            if user_email:
-                # Store it for future use
-                tool_context.state["user_email"] = user_email
-
-        # Source 3: Check if user_id contains an email (ADK Web passes user info)
-        if not user_email and hasattr(tool_context, 'user_id'):
-            potential_email = str(tool_context.user_id)
-            if '@' in potential_email:
-                user_email = potential_email
-                # Store it for future use
-                tool_context.state["user_email"] = user_email
-
-        # Source 4: Check session metadata (if available)
-        if not user_email and hasattr(tool_context, 'session'):
-            session = tool_context.session
-            if hasattr(session, 'user_id') and '@' in str(session.user_id):
-                user_email = str(session.user_id)
-                tool_context.state["user_email"] = user_email
-            # Also try session.state
-            elif hasattr(session, 'state') and isinstance(session.state, dict):
-                user_email = session.state.get("user_email")
-                if user_email:
-                    tool_context.state["user_email"] = user_email
-
+        # Fallback: try without prefix (backward compatibility)
         if not user_email:
-            logger.error("User email not found in tool context")
-            logger.error(f"Available tool_context attributes: {dir(tool_context)}")
-            if hasattr(tool_context, 'session'):
-                logger.error(f"Session attributes: {dir(tool_context.session)}")
+            user_email = tool_context.state.get("user_email")
+
+        # If still not found, log detailed debug info and fail
+        if not user_email:
+            logger.error("User email not found in tool context state")
+            logger.error(f"Available state keys: {list(tool_context.state.keys())}")
+            logger.error(f"ToolContext type: {type(tool_context)}")
+            logger.error(f"ToolContext attributes: {dir(tool_context)}")
+
             return {
                 "status": "error",
                 "message": "Usuario no autenticado. No se pudo identificar el email del usuario. Por favor, asegúrate de estar logueado correctamente.",

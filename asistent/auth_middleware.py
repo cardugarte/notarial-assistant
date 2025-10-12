@@ -293,7 +293,24 @@ class AuthMiddleware:
         user_info = scope['session']['user']
         user_email = user_info.get('email', '')
 
-        # Store user email in scope's state so ADK can access it
+        # Use ADK session state structure (official pattern for Cloud Run)
+        # ADK looks for state in scope['extensions']['session']['state']
+        if 'extensions' not in scope:
+            scope['extensions'] = {}
+
+        if 'session' not in scope['extensions']:
+            scope['extensions']['session'] = {}
+
+        if 'state' not in scope['extensions']['session']:
+            scope['extensions']['session']['state'] = {}
+
+        # Store with 'app:' prefix for cross-request persistence
+        session_state = scope['extensions']['session']['state']
+        session_state['app:user_email'] = user_email
+        session_state['app:user_name'] = user_info.get('name', '')
+        session_state['app:user_picture'] = user_info.get('picture', '')
+
+        # Also keep old format for backward compatibility (during transition)
         if 'state' not in scope:
             scope['state'] = {}
         scope['state']['user_email'] = user_email
