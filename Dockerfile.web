@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
 COPY asistent/ ./asistent/
-COPY run_web.py .
+COPY run_adk_web.py .
 
 # Set environment variables (will be overridden by Cloud Run)
 ENV GOOGLE_CLOUD_PROJECT=escribania-mastropasqua
@@ -26,5 +26,5 @@ ENV GOOGLE_GENAI_USE_VERTEXAI=TRUE
 # Expose port
 EXPOSE 8080
 
-# Start uvicorn
-CMD ["uvicorn", "run_web:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start ADK web server
+CMD ["python", "run_adk_web.py"]
