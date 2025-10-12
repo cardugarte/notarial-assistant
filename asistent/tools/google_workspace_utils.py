@@ -2,36 +2,76 @@
 Utility functions for Google Workspace (Drive and Docs) integration.
 
 This module provides helper functions for:
-- Authenticating with Google Drive and Docs APIs
+- Authenticating with Google Drive and Docs APIs using Service Account with Domain-Wide Delegation
 - Managing user folders in Drive
 - Creating and formatting Google Docs
 - Version control for documents
 """
 
+import json
 import logging
 import os
 import re
+import tempfile
 from typing import Optional, Tuple
 
 from google.auth import default
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-from ..secrets import get_drive_root_folder_id
+from ..secrets import get_drive_root_folder_id, get_secret
 
 logger = logging.getLogger(__name__)
 
-# Service Account key file path (if available)
-SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+# Service Account key from Secret Manager or environment variable
+def _get_service_account_credentials(scopes: list, user_email: str = None):
+    """
+    Get Service Account credentials with Domain-Wide Delegation.
+
+    Priority:
+    1. Service Account key from Secret Manager
+    2. GOOGLE_APPLICATION_CREDENTIALS environment variable
+    3. Application Default Credentials (fallback)
+    """
+    # Try to get Service Account key from Secret Manager
+    sa_key_json = get_secret("drive-service-account-key")
+
+    if sa_key_json:
+        # Load credentials from JSON string
+        sa_info = json.loads(sa_key_json)
+        credentials = service_account.Credentials.from_service_account_info(
+            sa_info,
+            scopes=scopes
+        )
+        if user_email:
+            credentials = credentials.with_subject(user_email)
+        logger.info(f"Using Service Account from Secret Manager" + (f" with delegation to {user_email}" if user_email else ""))
+        return credentials
+
+    # Try GOOGLE_APPLICATION_CREDENTIALS environment variable
+    sa_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if sa_file and os.path.exists(sa_file):
+        credentials = service_account.Credentials.from_service_account_file(
+            sa_file,
+            scopes=scopes
+        )
+        if user_email:
+            credentials = credentials.with_subject(user_email)
+        logger.info(f"Using Service Account from env var" + (f" with delegation to {user_email}" if user_email else ""))
+        return credentials
+
+    # Fallback to Application Default Credentials (without delegation support)
+    logger.warning("No Service Account found, using Application Default Credentials (delegation not supported)")
+    credentials, _ = default(scopes=scopes)
+    return credentials
 
 
 def get_drive_service(user_email: str = None):
     """
-    Get Google Drive API service using Application Default Credentials with Domain-Wide Delegation.
+    Get Google Drive API service with Domain-Wide Delegation.
 
     Args:
-        user_email (str, optional): Email of the user to impersonate.
-                                   If None, uses default credentials without delegation.
+        user_email (str, optional): Email of the user to impersonate via Domain-Wide Delegation
 
     Returns:
         Google Drive API service instance
@@ -41,30 +81,16 @@ def get_drive_service(user_email: str = None):
         'https://www.googleapis.com/auth/drive.file'
     ]
 
-    # Try to use Service Account key file if available (supports delegation)
-    if SERVICE_ACCOUNT_FILE and os.path.exists(SERVICE_ACCOUNT_FILE):
-        credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE,
-            scopes=scopes
-        )
-        if user_email:
-            credentials = credentials.with_subject(user_email)
-    else:
-        # Fall back to Application Default Credentials
-        credentials, _ = default()
-        if user_email and hasattr(credentials, 'with_subject'):
-            credentials = credentials.with_scopes(scopes).with_subject(user_email)
-
+    credentials = _get_service_account_credentials(scopes, user_email)
     return build('drive', 'v3', credentials=credentials)
 
 
 def get_docs_service(user_email: str = None):
     """
-    Get Google Docs API service using Application Default Credentials with Domain-Wide Delegation.
+    Get Google Docs API service with Domain-Wide Delegation.
 
     Args:
-        user_email (str, optional): Email of the user to impersonate.
-                                   If None, uses default credentials without delegation.
+        user_email (str, optional): Email of the user to impersonate via Domain-Wide Delegation
 
     Returns:
         Google Docs API service instance
@@ -75,20 +101,7 @@ def get_docs_service(user_email: str = None):
         'https://www.googleapis.com/auth/drive.file'
     ]
 
-    # Try to use Service Account key file if available (supports delegation)
-    if SERVICE_ACCOUNT_FILE and os.path.exists(SERVICE_ACCOUNT_FILE):
-        credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE,
-            scopes=scopes
-        )
-        if user_email:
-            credentials = credentials.with_subject(user_email)
-    else:
-        # Fall back to Application Default Credentials
-        credentials, _ = default()
-        if user_email and hasattr(credentials, 'with_subject'):
-            credentials = credentials.with_scopes(scopes).with_subject(user_email)
-
+    credentials = _get_service_account_credentials(scopes, user_email)
     return build('docs', 'v1', credentials=credentials)
 
 
