@@ -9,3 +9,6 @@ google-cloud-secret-manager
 uvicorn
 python-multipart
 itsdangerous
+google-api-python-client
+google-auth
+google-auth-httplib2

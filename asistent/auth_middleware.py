@@ -288,4 +288,16 @@ class AuthMiddleware:
             await response(scope, receive, send)
             return
 
+        # Inject user email into scope state for ADK agent tools
+        # This makes the user email available in tool_context.state
+        user_info = scope['session']['user']
+        user_email = user_info.get('email', '')
+
+        # Store user email in scope's state so ADK can access it
+        if 'state' not in scope:
+            scope['state'] = {}
+        scope['state']['user_email'] = user_email
+        scope['state']['user_name'] = user_info.get('name', '')
+        scope['state']['user_picture'] = user_info.get('picture', '')
+
         await self.app(scope, receive, send)
