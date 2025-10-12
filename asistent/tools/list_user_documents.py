@@ -8,8 +8,8 @@ https://google.github.io/adk-docs/tools/authentication/#journey-2-building-custo
 import logging
 from typing import Optional
 
-from google.adk.auth.auth_config import AuthConfig
-from google.adk.auth.auth_credential import ExchangedCredential
+from google.adk.auth.auth_tool import AuthConfig
+from google.adk.auth.auth_credential import AuthCredential
 from google.adk.tools.tool_context import ToolContext
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -88,7 +88,7 @@ def _load_cached_credentials(tool_context: ToolContext) -> Optional[Credentials]
 
 
 def _credential_to_google_creds(
-    exchanged_credential: ExchangedCredential,
+    exchanged_credential: AuthCredential,
     auth_config: AuthConfig
 ) -> Credentials:
     """

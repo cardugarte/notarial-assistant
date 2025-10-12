@@ -13,6 +13,7 @@ from .tools.save_document_to_drive import save_document_to_drive
 root_agent = Agent(
     name="RagAgent",
     # Using Gemini 2.5 Flash for best performance with RAG operations
+    # Vertex AI will be used via GOOGLE_GENAI_USE_VERTEXAI env var
     model="gemini-2.5-flash",
     description="Vertex AI RAG Agent",
     tools=[
