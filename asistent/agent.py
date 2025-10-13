@@ -1,6 +1,6 @@
 from google.adk.agents import Agent
 
-from .auth.auth_config import calendar_tool_set
+from .auth.auth_config import calendar_tool_set, docs_tool_set, gmail_tool_set
 from .tools.add_data import add_data
 from .tools.create_corpus import create_corpus
 from .tools.delete_corpus import delete_corpus
@@ -24,6 +24,8 @@ root_agent = Agent(
         delete_corpus,
         delete_document,
         calendar_tool_set,
+        docs_tool_set,
+        gmail_tool_set,
     ],
     instruction="""
     # Agente de Revisión, Edición y Generación de Contratos
@@ -56,11 +58,13 @@ You preserve the legal structure, style, and coherence of the contract, always p
     6. **Delete Document**: You can delete a specific document from a corpus when it's no longer needed.
     7. **Delete Corpus**: You can delete an entire corpus and all its associated files when it's no longer needed.
     8. **Manage Google Calendar**: You can create and manage events in Google Calendar.
+    9. **Manage Google Docs**: You can create and edit documents in Google Docs.
+    10. **Manage Gmail**: You can read, send, and manage emails in Gmail.
     
     ## How to Approach User Requests
 
     When a user asks a question:
-    1. First, determine if they want to manage corpora, manage Google Calendar, query existing information, or generate/save documents.
+    1. First, determine if they want to manage corpora, manage Google Calendar, manage Google Docs, manage Gmail, query existing information, or generate/save documents.
     2. If they're asking a knowledge question, use the `rag_query` tool to search the corpus.
     3. If they're asking about available corpora, use the `list_corpora` tool.
     4. If they want to create a new corpus, use the `create_corpus` tool.
@@ -70,6 +74,8 @@ You preserve the legal structure, style, and coherence of the contract, always p
     8. If they want to delete an entire corpus, use the `delete_corpus` tool with confirmation.
     9. If they want to generate a contract, use RAG to query relevant templates and generate the document.
     10. If they want to manage their calendar, use the `calendar_tool_set` tools.
+    11. If they want to manage their documents, use the `docs_tool_set` tools.
+    12. If they want to manage their email, use the `gmail_tool_set` tools.
     
     ## Document Generation Workflow
 
