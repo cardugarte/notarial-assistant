@@ -1,46 +1,30 @@
 """
-ADK-native authentication configuration for Google Workspace APIs.
-Based on official ADK documentation:
-https://google.github.io/adk-docs/tools/authentication/
+This module configures the authentication for Google API toolsets.
 """
-from fastapi.openapi.models import OAuth2, OAuthFlows, OAuthFlowAuthorizationCode
-from google.adk.auth.auth_credential import AuthCredential, AuthCredentialTypes, OAuth2Auth
+
+import logging
+from google.adk.tools.google_api_tool import CalendarToolset
 from ..secrets import get_secret
 
-# Google Workspace OAuth2 scopes
-GOOGLE_DRIVE_SCOPES = {
-    "https://www.googleapis.com/auth/drive.file": "Create and manage files created by this app",
-    "https://www.googleapis.com/auth/documents": "Create and edit Google Docs documents"
-}
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def get_google_oauth_auth_scheme() -> OAuth2:
-    """
-    Get OAuth2 authentication scheme for Google Workspace APIs.
+# Create instances of the toolsets
+calendar_tool_set = CalendarToolset()
 
-    Returns:
-        OAuth2 scheme configured for Google with Drive and Docs scopes
-    """
-    return OAuth2(
-        flows=OAuthFlows(
-            authorizationCode=OAuthFlowAuthorizationCode(
-                authorizationUrl="https://accounts.google.com/o/oauth2/v2/auth",
-                tokenUrl="https://oauth2.googleapis.com/token",
-                scopes=GOOGLE_DRIVE_SCOPES
-            )
-        )
+# Get OAuth credentials from Secret Manager
+CLIENT_ID = get_secret("google-client-id")
+CLIENT_SECRET = get_secret("google-client-secret")
+
+if CLIENT_ID and CLIENT_SECRET:
+    logger.info("Configuring Google API toolsets...")
+    
+    # Configure Calendar toolset
+    calendar_tool_set.configure_auth(
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET
     )
-
-def get_google_oauth_credential() -> AuthCredential:
-    """
-    Get OAuth2 credential configuration from Secret Manager.
-
-    Returns:
-        AuthCredential with client_id and client_secret from Secret Manager
-    """
-    return AuthCredential(
-        auth_type=AuthCredentialTypes.OAUTH2,
-        oauth2=OAuth2Auth(
-            client_id=get_secret("google-client-id"),
-            client_secret=get_secret("google-client-secret")
-        )
-    )
+    
+    logger.info("Google API toolsets configured successfully.")
+else:
+    logger.warning("OAuth credentials not found in Secret Manager. Google API toolsets will not be available.")
