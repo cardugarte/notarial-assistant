@@ -17,7 +17,6 @@ Bienvenido a la documentación completa del Agente Legal con RAG (Retrieval Augm
 ### Deployment
 
 - **[Despliegue del Agente Backend](02-DESPLIEGUE-AGENTE.md)** - Cómo se desplegó el agente en Agent Engine
-- **[Despliegue de la Interfaz Web](03-DESPLIEGUE-WEB-UI.md)** - Cómo se desplegó la UI en Cloud Run
 
 ### Administración
 
@@ -31,23 +30,15 @@ Este proyecto implementa un **agente conversacional especializado en análisis d
 - **Gemini 2.5 Flash**: Modelo de IA de Google para generación de respuestas
 - **Vertex AI Agent Engine**: Infraestructura serverless de Google para ejecutar agentes
 - **ADK (Agent Development Kit)**: Framework de Google para desarrollar agentes
-- **Cloud Run**: Servicio serverless para hospedar la interfaz web
 
 ## 🏗️ Arquitectura General
 
 ```
 ┌─────────────────┐
 │   Usuarios      │
-│  (navegador)    │
+│  (Cliente ADK)  │
 └────────┬────────┘
-         │ HTTPS
-         ↓
-┌─────────────────────────────────┐
-│   Cloud Run                     │
-│   (ADK Web UI)                  │
-│   Puerto: 8080                  │
-└────────┬────────────────────────┘
-         │ API Interna
+         │ API
          ↓
 ┌─────────────────────────────────┐
 │   Vertex AI Agent Engine        │
@@ -55,6 +46,7 @@ Este proyecto implementa un **agente conversacional especializado en análisis d
 │   - Gemini 2.5 Flash           │
 │   - RAG Tools (7 herramientas) │
 │   - Estado de sesiones         │
+│   - OAuth Authentication       │
 └────────┬────────────────────────┘
          │
          ↓
@@ -113,9 +105,6 @@ adk-rag-agent/
 │
 ├── docs/                        # Documentación (estás aquí)
 │
-├── deploy.py                    # Script para desplegar el agente
-├── Dockerfile.web              # Container para la UI web
-├── cloudbuild.web.yaml         # Configuración de build
 ├── requirements.txt            # Dependencias Python
 ├── .env                        # Variables de entorno (local)
 │
@@ -126,14 +115,12 @@ adk-rag-agent/
 
 ### Producción
 
-- **Interfaz Web**: https://rag-legal-agent-ui-997298514042.us-central1.run.app
 - **Agent Engine**: projects/997298514042/locations/us-central1/reasoningEngines/1053512459316363264
 
 ### Consolas de Administración
 
-- **Cloud Run**: https://console.cloud.google.com/run?project=escribania-mastropasqua
-- **Agent Engine**: https://console.cloud.google.com/vertex-ai/reasoning-engines?project=escribania-mastropasqua
-- **IAM y Seguridad**: https://console.cloud.google.com/iam-admin?project=escribania-mastropasqua
+- **Agent Engine**: <https://console.cloud.google.com/vertex-ai/reasoning-engines?project=escribania-mastropasqua>
+- **IAM y Seguridad**: <https://console.cloud.google.com/iam-admin?project=escribania-mastropasqua>
 
 ## 💡 Próximos Pasos
 
