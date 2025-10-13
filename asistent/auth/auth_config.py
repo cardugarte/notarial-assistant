@@ -25,7 +25,8 @@ DOCS_TOOLS = [
 CALENDAR_TOOLS = [
     "calendar_events_insert",
     "calendar_events_list",
-    "calendar_events_update",
+    "calendar_events_get",
+    "calendar_events_patch",
     "calendar_events_delete",
 ]
 
