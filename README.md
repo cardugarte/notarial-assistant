@@ -1,125 +1,171 @@
-# Vertex AI RAG Agent with ADK
+# Notarial Assistant
 
-This repository contains a Google Agent Development Kit (ADK) implementation of a Retrieval Augmented Generation (RAG) agent using Google Cloud Vertex AI.
+A Google Agent Development Kit (ADK) implementation of an intelligent assistant specialized in Argentine notarial law. The agent provides document editing capabilities from Google Docs, calendar management, email handling, and automatic grammatical consistency detection.
 
 ## Overview
 
-The Vertex AI RAG Agent allows you to:
+The Notarial Assistant helps notaries and their staff with:
 
-- Query document corpora with natural language questions
-- List available document corpora
-- Create new document corpora
-- Add new documents to existing corpora
-- Get detailed information about specific corpora
-- Delete corpora when they're no longer needed
+- **Document Editing**: Read and modify Google Docs contracts, detecting and correcting grammatical inconsistencies automatically
+- **Calendar Management**: Schedule appointments, manage deadlines, and track procedures
+- **Email Handling**: Send notifications, reminders, and correspondence
+- **Legal Analysis**: Detect inconsistencies in contracts (identity, capacity, amounts, dates)
+- **Clause Renumbering**: Automatically renumber clauses when adding/removing sections
+
+## Key Features
+
+### Intelligent Document Editing
+
+When you provide a Google Docs URL, the assistant will:
+
+1. Fetch and analyze the complete document
+2. Apply requested changes (name substitutions, date updates, etc.)
+3. **Automatically detect and correct** grammatical inconsistencies:
+   - Gender agreement: "El SR CARLOS" → "La SRA ANDREA"
+   - Adjective agreement: "soltero" → "soltera"
+   - Pronoun agreement: "el compareciente" → "la compareciente"
+4. Present the complete edited text for your approval
+5. Create the final document only after explicit confirmation
+
+### Automatic Clause Renumbering
+
+When adding or removing contract clauses:
+- Clauses are automatically renumbered (PRIMERA, SEGUNDA, TERCERA...)
+- All cross-references are updated accordingly
+- No manual renumbering required
 
 ## Prerequisites
 
 - A Google Cloud account with billing enabled
 - A Google Cloud project with the Vertex AI API enabled
-- Appropriate access to create and manage Vertex AI resources
+- OAuth credentials configured in Google Cloud Secret Manager
 - Python 3.9+ environment
-
-## Setting Up Google Cloud Authentication
-
-Before running the agent, you need to set up authentication with Google Cloud:
-
-1. **Install Google Cloud CLI**:
-   - Visit [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) for installation instructions for your OS
-
-2. **Initialize the Google Cloud CLI**:
-   ```bash
-   gcloud init
-   ```
-   This will guide you through logging in and selecting your project.
-
-3. **Set up Application Default Credentials**:
-   ```bash
-   gcloud auth application-default login
-   ```
-   This will open a browser window for authentication and store credentials in:
-   `~/.config/gcloud/application_default_credentials.json`
-
-4. **Verify Authentication**:
-   ```bash
-   gcloud auth list
-   gcloud config list
-   ```
-
-5. **Enable Required APIs** (if not already enabled):
-   ```bash
-   gcloud services enable aiplatform.googleapis.com
-   ```
 
 ## Installation
 
-1. **Set up a virtual environment**:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/notarial-assistant.git
+   cd notarial-assistant
+   ```
+
+2. **Set up a virtual environment**:
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
-2. **Install Dependencies**:
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-## Using the Agent
+4. **Configure environment variables**:
+   Create `asistent/.env`:
+   ```bash
+   GOOGLE_CLOUD_PROJECT=your-project-id
+   GOOGLE_CLOUD_LOCATION=us-east4
+   GOOGLE_GENAI_USE_VERTEXAI=TRUE
+   ```
 
-The agent provides the following functionality through its tools:
+5. **Set up Google Cloud authentication**:
+   ```bash
+   gcloud auth application-default login
+   gcloud config set project your-project-id
+   ```
 
-### 1. Query Documents
-Allows you to ask questions and get answers from your document corpus:
-- Automatically retrieves relevant information from the specified corpus
-- Generates informative responses based on the retrieved content
+## Running the Agent
 
-### 2. List Corpora
-Shows all available document corpora in your project:
-- Displays corpus names and basic information
-- Helps you understand what data collections are available
+### Web UI (Recommended)
+```bash
+adk web
+```
 
-### 3. Create Corpus
-Create a new empty document corpus:
-- Specify a custom name for your corpus
-- Sets up the corpus with recommended embedding model configuration
-- Prepares the corpus for document ingestion
+### CLI Mode
+```bash
+adk cli ./asistent
+```
 
-### 4. Add New Data
-Add documents to existing corpora or create new ones:
-- Supports Google Drive URLs and GCS (Google Cloud Storage) paths
-- Automatically creates new corpora if they don't exist
+### Deploy to Cloud Run
+```bash
+adk deploy cloud_run \
+  --project=your-project-id \
+  --region=us-central1 \
+  --service_name=notarial-assistant \
+  --app_name=asistent \
+  --with_ui \
+  ./asistent
+```
 
-### 5. Get Corpus Information
-Provides detailed information about a specific corpus:
-- Shows document count, file metadata, and creation time
-- Useful for understanding corpus contents and structure
+## Usage Examples
 
-### 6. Delete Corpus
-Removes corpora that are no longer needed:
-- Requires confirmation to prevent accidental deletion
-- Permanently removes the corpus and all associated files
+### Edit a Contract
+
+```
+User: Tengo este documento https://docs.google.com/document/d/ABC123/edit
+      Cambiá CARLOS TORO por ANDREA GOMEZ
+
+Agent: [Fetches document, applies changes, detects gender inconsistencies]
+
+📄 Documento Editado - Vista Previa Completa
+
+PODER ESPECIAL
+
+En la Ciudad de Buenos Aires... comparece La SRA ANDREA GOMEZ,
+de nacionalidad argentina, soltera, mayor de edad...
+
+✅ Cambios aplicados:
+- CARLOS TORO → ANDREA GOMEZ
+- El SR → La SRA
+- soltero → soltera
+- el compareciente → la compareciente
+
+📋 ¿Aprobás este texto?
+
+User: Sí, perfecto
+
+Agent: ✅ Documento creado exitosamente: [URL]
+```
+
+### Schedule an Appointment
+
+```
+User: Creá un turno para mañana a las 10:00 para firma de escritura
+
+Agent: [Gets current date, calculates tomorrow, creates event]
+
+🗓️ Turno creado:
+- Fecha: 15/10/2025 10:00 - 11:00
+- Título: Firma de escritura
+- Calendario: escribania@mastropasqua.ar
+```
+
+## Project Structure
+
+```
+notarial-assistant/
+├── asistent/               # Main agent package
+│   ├── __init__.py        # Vertex AI initialization
+│   ├── agent.py           # Root agent definition
+│   ├── config.py          # Configuration constants
+│   ├── secrets.py         # Secret Manager integration
+│   ├── auth/
+│   │   └── auth_config.py # Google API toolsets + OAuth
+│   └── tools/
+│       └── get_current_date.py
+├── requirements.txt       # Python dependencies
+├── CLAUDE.md             # AI assistant instructions
+└── README.md             # This file
+```
 
 ## Troubleshooting
 
-If you encounter issues:
-
-- **Authentication Problems**:
-  - Run `gcloud auth application-default login` again
-  - Check if your service account has the necessary permissions
-
-- **API Errors**:
-  - Ensure the Vertex AI API is enabled: `gcloud services enable aiplatform.googleapis.com`
-  - Verify your project has billing enabled
-
-- **Quota Issues**:
-  - Check your Google Cloud Console for any quota limitations
-  - Request quota increases if needed
-
-- **Missing Dependencies**:
-  - Ensure all requirements are installed: `pip install -r requirements.txt`
+- **Authentication Problems**: Run `gcloud auth application-default login` again
+- **API Errors**: Ensure Vertex AI API is enabled: `gcloud services enable aiplatform.googleapis.com`
+- **OAuth Issues**: Verify secrets are configured in Secret Manager (`google-client-id`, `google-client-secret`)
 
 ## Additional Resources
 
-- [Vertex AI RAG Documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/rag-overview)
-- [Google Agent Development Kit (ADK) Documentation](https://github.com/google/agents-framework)
+- [Google Agent Development Kit (ADK)](https://github.com/google/adk-python)
+- [Vertex AI Documentation](https://cloud.google.com/vertex-ai/docs)
 - [Google Cloud Authentication Guide](https://cloud.google.com/docs/authentication)

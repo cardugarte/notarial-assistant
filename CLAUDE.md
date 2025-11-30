@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ADK RAG Agent is a Google Agent Development Kit (ADK) implementation of a Retrieval Augmented Generation (RAG) agent using Google Cloud Vertex AI. The agent is specialized as a notarial assistant for Argentine notarial law, with capabilities for document analysis, calendar management, email handling, and corpus management.
+Notarial Assistant is a Google Agent Development Kit (ADK) implementation specialized in Argentine notarial law. The agent provides capabilities for document editing from Google Docs, calendar management, email handling, and grammatical consistency detection.
 
 ## Key Commands
 
@@ -21,7 +21,7 @@ adk cli ./asistent
 adk deploy cloud_run \
   --project=escribania-mastropasqua \
   --region=us-central1 \
-  --service_name=adk-default-service-name \
+  --service_name=notarial-assistant \
   --app_name=asistent \
   --with_ui \
   ./asistent
@@ -48,8 +48,8 @@ gcloud config set project escribania-mastropasqua
 
 1. **Agent Configuration** (`asistent/agent.py`)
    - Defines `root_agent` with model configuration (gemini-2.5-flash)
-   - Registers all available tools (RAG, Calendar, Docs, Gmail, Drive)
-   - Contains extensive Spanish instruction prompt for notarial assistant behavior
+   - Registers tools: Calendar, Docs, Gmail, Drive, get_current_date
+   - Contains Spanish instruction prompt for notarial assistant behavior
    - **Critical constraint**: ADK requires single-line tool calls like `print(function(param='value'))` - no imports, variables, or multi-line code
 
 2. **Package Initialization** (`asistent/__init__.py`)
@@ -58,8 +58,6 @@ gcloud config set project escribania-mastropasqua
    - Exports `root_agent` for ADK entry point
 
 3. **Configuration** (`asistent/config.py`)
-   - Defines RAG default parameters (chunk size, top_k, distance threshold)
-   - Embedding model: `text-embedding-004`
    - Environment variables: `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`
 
 4. **Secrets Management** (`asistent/secrets.py`)
@@ -79,19 +77,9 @@ gcloud config set project escribania-mastropasqua
   - **Drive**: copy and get files
 - Configures OAuth authentication via `configure_auth()` with credentials from Secret Manager
 
-### RAG Tools (`asistent/tools/`)
+### Tools (`asistent/tools/`)
 
-All tools follow ADK conventions with `ToolContext` parameter and return structured dicts with `status`, `message`, and result data.
-
-- **`rag_query.py`**: Query corpora with similarity search
-- **`list_corpora.py`**: List all available RAG corpora
-- **`create_corpus.py`**: Create new corpus with specified name
-- **`add_data.py`**: Add documents from Google Drive URLs or GCS paths (supports automatic corpus creation)
-- **`get_corpus_info.py`**: Retrieve corpus metadata and file details
-- **`delete_corpus.py`**: Delete entire corpus
-- **`delete_document.py`**: Remove individual document from corpus
 - **`get_current_date.py`**: Get current date/time (required before creating events with relative dates)
-- **`utils.py`**: Shared utilities for corpus name resolution and validation
 
 ### Critical Workflows
 
@@ -142,7 +130,7 @@ GOOGLE_GENAI_USE_VERTEXAI=TRUE
 ### Dependencies
 
 - **Core**: `google-adk>=1.16.0`, `google-cloud-aiplatform[adk,agent_engines]>=1.112.0`
-- **Google Cloud**: `google-cloud-storage`, `google-cloud-secret-manager`, `google-api-python-client`
+- **Google Cloud**: `google-cloud-secret-manager`, `google-api-python-client`
 - **Auth**: `authlib`, `google-auth`, `google-auth-httplib2`
 - **Utilities**: `python-dotenv`, `pydantic`, `requests`, `PyYAML`
 
@@ -161,7 +149,7 @@ GOOGLE_GENAI_USE_VERTEXAI=TRUE
 ## Project Structure
 
 ```
-adk-rag-agent/
+notarial-assistant/
 ├── asistent/               # Main agent package
 │   ├── __init__.py        # Vertex AI initialization
 │   ├── agent.py           # Root agent definition
@@ -169,17 +157,8 @@ adk-rag-agent/
 │   ├── secrets.py         # Secret Manager integration
 │   ├── auth/
 │   │   └── auth_config.py # Google API toolsets + OAuth
-│   └── tools/             # RAG and utility tools
-│       ├── rag_query.py
-│       ├── list_corpora.py
-│       ├── create_corpus.py
-│       ├── add_data.py
-│       ├── get_corpus_info.py
-│       ├── delete_corpus.py
-│       ├── delete_document.py
-│       ├── get_current_date.py
-│       └── utils.py
-├── scripts/               # Development utilities
+│   └── tools/
+│       └── get_current_date.py
 ├── requirements.txt       # Python dependencies
 └── README.md             # User documentation
 ```
