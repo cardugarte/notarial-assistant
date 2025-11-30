@@ -1,101 +1,67 @@
 """
 This module configures the authentication for Google API toolsets.
+Uses lazy loading for credentials to improve startup time.
 """
 
 import logging
+from functools import lru_cache
 from google.adk.tools.google_api_tool import CalendarToolset, DocsToolset, GmailToolset, GoogleApiToolset
-from ..secrets import get_secret
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+@lru_cache(maxsize=1)
+def _get_credentials():
+    """Lazy load credentials from Secret Manager (cached)."""
+    from ..secrets import get_secret
+    client_id = get_secret("google-client-id")
+    client_secret = get_secret("google-client-secret")
+    return client_id, client_secret
+
+
+def _configure_toolset(toolset):
+    """Configure a toolset with OAuth credentials."""
+    client_id, client_secret = _get_credentials()
+    if client_id and client_secret:
+        toolset.configure_auth(client_id=client_id, client_secret=client_secret)
+    else:
+        logger.warning(f"OAuth credentials not found for {toolset.__class__.__name__}")
+    return toolset
+
+
 # Custom DriveToolset implementation
 class DriveToolset(GoogleApiToolset):
-    """
-    Custom toolset for Google Drive API v3.
-    Provides access to Drive operations like files.copy.
-    """
-    def __init__(
-        self,
-        client_id: str = None,
-        client_secret: str = None,
-        tool_filter: list = None,
-        service_account = None,
-        tool_name_prefix: str = None,
-    ):
-        super().__init__(
-            "drive",
-            "v3",
-            client_id,
-            client_secret,
-            tool_filter,
-            service_account,
-            tool_name_prefix,
-        )
+    """Custom toolset for Google Drive API v3."""
+    def __init__(self, tool_filter: list = None):
+        super().__init__("drive", "v3", tool_filter=tool_filter)
 
-# Define desired tools for each toolset
-GMAIL_TOOLS = [
-    "gmail_users_messages_send",
-    "gmail_users_drafts_create",
-    "gmail_users_drafts_send",
-]
 
-DOCS_TOOLS = [
-    "docs_documents_create",
-    "docs_documents_get",
-    "docs_documents_batch_update",
-]
+# Tool filters
+GMAIL_TOOLS = ["gmail_users_messages_send", "gmail_users_drafts_create", "gmail_users_drafts_send"]
+DOCS_TOOLS = ["docs_documents_create", "docs_documents_get", "docs_documents_batch_update"]
+CALENDAR_TOOLS = ["calendar_events_insert", "calendar_events_list", "calendar_events_get", "calendar_events_patch", "calendar_events_delete"]
+DRIVE_TOOLS = ["drive_files_copy", "drive_files_get"]
 
-CALENDAR_TOOLS = [
-    "calendar_events_insert",
-    "calendar_events_list",
-    "calendar_events_get",
-    "calendar_events_patch",
-    "calendar_events_delete",
-]
 
-DRIVE_TOOLS = [
-    "drive_files_copy",
-    "drive_files_get",
-]
+# Lazy-initialized toolsets (credentials loaded on first use)
+def _create_docs_toolset():
+    return _configure_toolset(DocsToolset(tool_filter=DOCS_TOOLS))
 
-# Create instances of the toolsets with tool_filter parameter
-calendar_tool_set = CalendarToolset(tool_filter=CALENDAR_TOOLS)
-docs_tool_set = DocsToolset(tool_filter=DOCS_TOOLS)
-gmail_tool_set = GmailToolset(tool_filter=GMAIL_TOOLS)
-drive_tool_set = DriveToolset(tool_filter=DRIVE_TOOLS)
+def _create_drive_toolset():
+    return _configure_toolset(DriveToolset(tool_filter=DRIVE_TOOLS))
 
-# Get OAuth credentials from Secret Manager
-CLIENT_ID = get_secret("google-client-id")
-CLIENT_SECRET = get_secret("google-client-secret")
+def _create_calendar_toolset():
+    return _configure_toolset(CalendarToolset(tool_filter=CALENDAR_TOOLS))
 
-if CLIENT_ID and CLIENT_SECRET:
-    logger.info("Configuring Google API toolsets...")
+def _create_gmail_toolset():
+    return _configure_toolset(GmailToolset(tool_filter=GMAIL_TOOLS))
 
-    # Configure Calendar toolset
-    calendar_tool_set.configure_auth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET
-    )
 
-    # Configure Docs toolset
-    docs_tool_set.configure_auth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET
-    )
+# Export toolsets - created on import but credentials loaded lazily
+docs_tool_set = _create_docs_toolset()
+drive_tool_set = _create_drive_toolset()
+calendar_tool_set = _create_calendar_toolset()
+gmail_tool_set = _create_gmail_toolset()
 
-    # Configure Gmail toolset
-    gmail_tool_set.configure_auth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET
-    )
-
-    # Configure Drive toolset
-    drive_tool_set.configure_auth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET
-    )
-
-    logger.info("Google API toolsets configured successfully.")
-else:
-    logger.warning("OAuth credentials not found in Secret Manager. Google API toolsets will not be available.")
+logger.info("Google API toolsets initialized.")
